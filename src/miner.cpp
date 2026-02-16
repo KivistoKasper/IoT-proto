@@ -4,9 +4,12 @@
 #include <termios.h>
 #include <cstring>
 #include <sstream>
-
+#include <chrono>
+#include <ctime>
+#include <vector>
 
 struct SensorData {
+    std::chrono::system_clock::time_point timestamp;
     float temperature;
     float humidity;
     int light;
@@ -30,6 +33,7 @@ bool parseLine(const std::string& line, SensorData& data) {
         return false;  // parsing failed
     }
 
+    data.timestamp = std::chrono::system_clock::now(); // Set the timestamp to the current time
     return true;
 }
 
@@ -69,6 +73,7 @@ int main() {
 
     char buffer[256];
     std::string lineBuffer;
+    std::vector<SensorData> dataLog; // Vector to store parsed sensor data
 
     while(true) {
         int n = read(serial_port, &buffer, sizeof(buffer) - 1);
@@ -83,7 +88,19 @@ int main() {
 
                 SensorData data; // Create a SensorData struct to hold the parsed values
                 if (parseLine(line, data)) {
-                    std::cout << "Parsed Data - Temperature: " << data.temperature 
+                    /*
+                    Here we check if the data log has more than 1000 entries. 
+                    1000 entires equals to approximately 33 minutes of data at a 2 second interval.
+                    */
+                    if (dataLog.size() >= 1000) {
+                        dataLog.erase(dataLog.begin()); // Remove the oldest entry if we have more than 1000
+                    }
+                    dataLog.push_back(data); // Add the new data to the log
+
+                    // print the parsed data to the console
+                    auto time = std::chrono::system_clock::to_time_t(data.timestamp);
+                    std::cout << std::ctime(&time)
+                              <<" - Temperature: " << data.temperature 
                               << " °C, Humidity: " << data.humidity 
                               << " %, Light: " << data.light << std::endl;
                 }

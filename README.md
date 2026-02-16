@@ -22,9 +22,9 @@ COMP.CE.450-2026 Internet of Things
 ```
 g++ miner.cpp -o miner.out
 ./miner.out 
-Tidity: 28.56 %
-Temperature: 22.06 °C  Humidity: 28.75 %
-Temperature: 22.00 °C  Humidity: 28.75 %
-Temperature: 22.06 °C  Humidity: 28.87 %
+Mon Feb 16 19:00:42 2026
+ - Temperature: 22.31 °C, Humidity: 31 %, Light: 31
+Mon Feb 16 19:00:44 2026
+ - Temperature: 22.19 °C, Humidity: 31.25 %, Light: 42
 ^C
 ```
