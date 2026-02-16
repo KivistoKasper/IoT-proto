@@ -3,6 +3,35 @@
 #include <unistd.h>
 #include <termios.h>
 #include <cstring>
+#include <sstream>
+
+
+struct SensorData {
+    float temperature;
+    float humidity;
+    int light;
+};
+
+bool parseLine(const std::string& line, SensorData& data) {
+    std::stringstream ss(line);
+    std::string value;
+
+    try {
+        std::getline(ss, value, ',');
+        data.temperature = std::stof(value);
+
+        std::getline(ss, value, ',');
+        data.humidity = std::stof(value);
+
+        std::getline(ss, value, ',');
+        data.light = std::stoi(value);
+    }
+    catch (...) {
+        return false;  // parsing failed
+    }
+
+    return true;
+}
 
 int main() {
     const char* port = "/dev/ttyACM0";   // Port where the Arduino is connected
@@ -39,12 +68,30 @@ int main() {
     tcsetattr(serial_port, TCSANOW, &tty);
 
     char buffer[256];
+    std::string lineBuffer;
 
     while(true) {
         int n = read(serial_port, &buffer, sizeof(buffer) - 1);
         if(n > 0) {
             buffer[n] = '\0'; // make proper C-string
-            std::cout << buffer;
+            lineBuffer += buffer; // Append the new data to the line buffer
+            size_t pos;
+
+            while ((pos = lineBuffer.find('\n')) != std::string::npos) { // pos is the position of the newline character
+                std::string line = lineBuffer.substr(0, pos); // Extract the first line
+                lineBuffer.erase(0, pos + 1); // Remove the processed line from the buffer
+
+                SensorData data; // Create a SensorData struct to hold the parsed values
+                if (parseLine(line, data)) {
+                    std::cout << "Parsed Data - Temperature: " << data.temperature 
+                              << " °C, Humidity: " << data.humidity 
+                              << " %, Light: " << data.light << std::endl;
+                }
+                else {
+                    std::cout << "Failed to parse line: " << line << std::endl;
+                }
+            }
+
         }
     }
 
