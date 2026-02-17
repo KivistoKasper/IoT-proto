@@ -12,6 +12,8 @@ void loop() {
   float humidity = TH02.ReadHumidity();
   int lightValue = analogRead(A0); // plugged in the light sensor to A0
 
+  delay(1000);
+  
   // send data in CSV format: temperature, humidity, light value
   Serial.print(temp, 2);
   Serial.print(",");
@@ -19,5 +21,5 @@ void loop() {
   Serial.print(",");
   Serial.println(lightValue);
 
-  delay(2000);
+  delay(1000);
 }
