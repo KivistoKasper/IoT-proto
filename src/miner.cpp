@@ -86,6 +86,11 @@ int main() {
                 std::string line = lineBuffer.substr(0, pos); // Extract the first line
                 lineBuffer.erase(0, pos + 1); // Remove the processed line from the buffer
 
+                // Debug: print the raw line read from the serial port
+                std::cout << "\n--------------------------\nRaw line: " << line << "\n--------------------------"<<std::endl; 
+
+
+
                 SensorData data; // Create a SensorData struct to hold the parsed values
                 if (parseLine(line, data)) {
                     /*
