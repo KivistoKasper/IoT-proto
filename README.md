@@ -8,7 +8,7 @@ COMP.CE.450-2026 Internet of Things
 
 ## Dependecies
 - Seeed TH02 'https://github.com/Seeed-Studio/Grove_Temper_Humidity' 
-- Grove light sensor library 'https://github.com/Seeed-Studio/Grove_LED_Bar/archive/master.zip'
+- Grove light sensor library 
 
 
 
