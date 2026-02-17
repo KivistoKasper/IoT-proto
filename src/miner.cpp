@@ -57,9 +57,9 @@ int main() {
         return 1;
     }
 
-    // Set the baud rate to 9600
-    cfsetispeed(&tty, B9600);
-    cfsetospeed(&tty, B9600);
+    // Set the baud rate to 115200
+    cfsetispeed(&tty, B115200);
+    cfsetospeed(&tty, B115200);
 
     tty.c_cflag |= (CLOCAL | CREAD); // local connection, enable reading
     tty.c_cflag &= ~CSIZE;           // Clear current character size mask
@@ -74,6 +74,7 @@ int main() {
     char buffer[256];
     std::string lineBuffer;
     std::vector<SensorData> dataLog; // Vector to store parsed sensor data
+    bool firstSkipped = false; // Flag to skip the first line if it contains headers
 
     while(true) {
         int n = read(serial_port, &buffer, sizeof(buffer) - 1);
@@ -87,9 +88,7 @@ int main() {
                 lineBuffer.erase(0, pos + 1); // Remove the processed line from the buffer
 
                 // Debug: print the raw line read from the serial port
-                std::cout << "\n--------------------------\nRaw line: " << line << "\n--------------------------"<<std::endl; 
-
-
+                // std::cout << "\n--------------------------\nRaw line: " << line << "\n--------------------------"<<std::endl; 
 
                 SensorData data; // Create a SensorData struct to hold the parsed values
                 if (parseLine(line, data)) {
@@ -99,6 +98,11 @@ int main() {
                     */
                     if (dataLog.size() >= 1000) {
                         dataLog.erase(dataLog.begin()); // Remove the oldest entry if we have more than 1000
+                    }
+
+                    if (!firstSkipped) {
+                        firstSkipped = true; // Skip the first line if it contains headers
+                        continue;
                     }
                     dataLog.push_back(data); // Add the new data to the log
 
