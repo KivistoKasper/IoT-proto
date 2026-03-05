@@ -7,8 +7,8 @@ COMP.CE.450-2026 Internet of Things
 - Grove light sensor
 
 ## Dependecies
-- Seeed TH02 'https://github.com/Seeed-Studio/Grove_Temper_Humidity' 
-- Grove light sensor library 
+- Seeed TH02 library 'https://github.com/Seeed-Studio/Grove_Temper_Humidity' 
+- Arduino LCD liquidCrystalI2C library 'https://docs.arduino.cc/libraries/liquidcrystal-i2c/#Releases'
 
 
 

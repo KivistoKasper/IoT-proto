@@ -1,2 +1,5 @@
 # allow only .cpp and .ino files in the repository, ignore all other files
 *.out
+
+# Home Assistant config files
+/config
