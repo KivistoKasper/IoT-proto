@@ -9,6 +9,9 @@
 #include <vector>
 #include <mqtt/async_client.h>
 
+// Server: 192.168.0.141
+// Rasbi 192.168.0.69
+
 const std::string SERVER_ADDRESS("tcp://192.168.0.141:1883");
 const std::string CLIENT_ID("Rasbi");
 const std::string TOPIC("office/sensor");
@@ -146,7 +149,7 @@ int main() {
                                       " %, Light: " + std::to_string(data.light);
                     
                     mqtt::message_ptr pubmsg = mqtt::make_message(TOPIC, payload);
-                    client.publish(pubmsg)->wait_for(std::chrono::seconds(10)); // Publish the message to the MQTT broker
+                    client.publish(pubmsg)->wait(); // Publish the message to the MQTT broker
                     std::cout << "Message published: " << payload << std::endl;
 
                     std::cout << std::ctime(&time)

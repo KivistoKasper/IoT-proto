@@ -13,6 +13,7 @@ COMP.CE.450-2026 Internet of Things
 
 ### Rasberry Pi 
 - eclipse paho c++ client for MQTT 'https://github.com/eclipse-paho/paho.mqtt.cpp' 
+- mosquitto and mosquitto-clients
 
 
 
@@ -31,9 +32,9 @@ COMP.CE.450-2026 Internet of Things
 
 1. Install MQTT C++ client on the rasberry Pi. Follow the instructions on the GitHub page 
 
-2. Build the code: `g++ miner.cpp -o miner.out` 
+2. Build the code: `g++ miner.cpp -o miner.out -lpaho-mqttpp3 -lpaho-mqtt3as` 
 
-3. Run the code `./miner.out`
+3. Run the code `LD_LIBRARY_PATH=/usr/local/lib ./miner.out`
 
 
 Capture from terminal: 
