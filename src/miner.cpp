@@ -7,6 +7,12 @@
 #include <chrono>
 #include <ctime>
 #include <vector>
+#include <mqtt/async_client.h>
+
+const std::string SERVER_ADDRESS("tcp://192.168.0.141:1883");
+const std::string CLIENT_ID("Rasbi");
+const std::string TOPIC("office/sensor");
+const int QOS = 0;
 
 struct SensorData {
     std::chrono::system_clock::time_point timestamp;
@@ -37,7 +43,34 @@ bool parseLine(const std::string& line, SensorData& data) {
     return true;
 }
 
+class PublisherCallback : public virtual mqtt::callback {
+public:
+    void connection_lost(const std::string& cause) override {
+        std::cout << "Connection lost: " << cause << std::endl;
+    }
+    void delivery_complete(mqtt::delivery_token_ptr token) override {
+        std::cout << "Message delivered" << std::endl;
+    }
+};
+
 int main() {
+    // set up MQTT client
+    mqtt::async_client client(SERVER_ADDRESS, CLIENT_ID);
+    mqtt::connect_options connOpts;
+    connOpts.set_keep_alive_interval(20);
+    connOpts.set_clean_session(true);
+
+    // try connecting to the MQTT broker and set the callback for connection events and message delivery
+    try {
+        PublisherCallback callback;
+        client.set_callback(callback);
+        mqtt::token_ptr connToken = client.connect(connOpts);
+        connToken->wait();
+    } catch (const mqtt::exception& exc) {
+        std::cerr << "Error connecting to MQTT broker: " << exc.what() << std::endl;
+        return 1;
+    }
+
     const char* port = "/dev/ttyACM0";   // Port where the Arduino is connected
     int serial_port = open(port, O_RDONLY); // Open the serial port for reading only
 
@@ -108,6 +141,14 @@ int main() {
 
                     // print the parsed data to the console
                     auto time = std::chrono::system_clock::to_time_t(data.timestamp);
+                    std::string payload = "Temperature: " + std::to_string(data.temperature) + 
+                                      " °C, Humidity: " + std::to_string(data.humidity) + 
+                                      " %, Light: " + std::to_string(data.light);
+                    
+                    mqtt::message_ptr pubmsg = mqtt::make_message(TOPIC, payload);
+                    client.publish(pubmsg)->wait_for(std::chrono::seconds(10)); // Publish the message to the MQTT broker
+                    std::cout << "Message published: " << payload << std::endl;
+
                     std::cout << std::ctime(&time)
                               <<" - Temperature: " << data.temperature 
                               << " °C, Humidity: " << data.humidity 
@@ -122,5 +163,6 @@ int main() {
     }
 
     close(serial_port);
+    client.disconnect()->wait();
     return 0;
 }
