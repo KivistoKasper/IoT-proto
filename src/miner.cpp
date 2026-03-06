@@ -6,15 +6,16 @@
 #include <sstream>
 #include <chrono>
 #include <ctime>
-#include <vector>
 #include <mqtt/async_client.h>
 
 // Server: 192.168.0.141
 // Rasbi 192.168.0.69
 
-const std::string SERVER_ADDRESS("tcp://192.168.0.141:1883");
+const std::string SERVER_ADDRESS("tcp://192.168.0.69:1883");
 const std::string CLIENT_ID("Rasbi");
-const std::string TOPIC("office/sensor");
+const std::string TOPICLIGHT("office/light");
+const std::string TOPICTEMP("office/temp");
+const std::string TOPICHUM("office/hum");
 const int QOS = 0;
 
 struct SensorData {
@@ -109,7 +110,7 @@ int main() {
 
     char buffer[256];
     std::string lineBuffer;
-    std::vector<SensorData> dataLog; // Vector to store parsed sensor data
+
     bool firstSkipped = false; // Flag to skip the first line if it contains headers
 
     while(true) {
@@ -123,45 +124,30 @@ int main() {
                 std::string line = lineBuffer.substr(0, pos); // Extract the first line
                 lineBuffer.erase(0, pos + 1); // Remove the processed line from the buffer
 
-                // Debug: print the raw line read from the serial port
-                // std::cout << "\n--------------------------\nRaw line: " << line << "\n--------------------------"<<std::endl; 
-
                 SensorData data; // Create a SensorData struct to hold the parsed values
                 if (parseLine(line, data)) {
-                    /*
-                    Here we check if the data log has more than 1000 entries. 
-                    1000 entires equals to approximately 33 minutes of data at a 2 second interval.
-                    */
-                    if (dataLog.size() >= 1000) {
-                        dataLog.erase(dataLog.begin()); // Remove the oldest entry if we have more than 1000
-                    }
-
                     if (!firstSkipped) {
                         firstSkipped = true; // Skip the first line if it contains headers
                         continue;
                     }
-                    dataLog.push_back(data); // Add the new data to the log
 
-                    // print the parsed data to the console
-                    auto time = std::chrono::system_clock::to_time_t(data.timestamp);
                     std::string payload = "Temperature: " + std::to_string(data.temperature) + 
-                                      " °C, Humidity: " + std::to_string(data.humidity) + 
-                                      " %, Light: " + std::to_string(data.light);
+                                         " °C, Humidity: " + std::to_string(data.humidity) + 
+                                          " %, Light: " + std::to_string(data.light);
                     
-                    mqtt::message_ptr pubmsg = mqtt::make_message(TOPIC, payload);
+                    // Start publishing data with MQTT
+                    mqtt::message_ptr pubmsg = mqtt::make_message(TOPICLIGHT, std::to_string(data.light));
                     client.publish(pubmsg)->wait(); // Publish the message to the MQTT broker
-                    std::cout << "Message published: " << payload << std::endl;
-
-                    std::cout << std::ctime(&time)
-                              <<" - Temperature: " << data.temperature 
-                              << " °C, Humidity: " << data.humidity 
-                              << " %, Light: " << data.light << std::endl;
-                }
-                else {
-                    std::cout << "Failed to parse line: " << line << std::endl;
+                    
+                    pubmsg = mqtt::make_message(TOPICTEMP, std::to_string(data.temperature));
+                    client.publish(pubmsg)->wait(); 
+                    
+                    pubmsg = mqtt::make_message(TOPICHUM, std::to_string(data.humidity));
+                    client.publish(pubmsg)->wait(); 
+                    
+                    std::cout << "Message published!: " << payload << std::endl;
                 }
             }
-
         }
     }
 
