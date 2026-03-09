@@ -124,6 +124,8 @@ int main() {
                 std::string line = lineBuffer.substr(0, pos); // Extract the first line
                 lineBuffer.erase(0, pos + 1); // Remove the processed line from the buffer
 
+                std::cout << "Line length: " << line.size() << " bytes" << " | Content: " << line << std::endl; // Print the line and size
+
                 SensorData data; // Create a SensorData struct to hold the parsed values
                 if (parseLine(line, data)) {
                     if (!firstSkipped) {
